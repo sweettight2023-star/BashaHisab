@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Hind Siliguri", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Noto Serif Bengali", Georgia, serif;
+
+  --color-paper: #f7f3ea;
+  --color-paper-deep: #efe8d9;
+  --color-cream: #fdfbf5;
+  --color-ink: #1c1a15;
+  --color-ink-soft: #57534a;
+  --color-line: #e3dcc8;
+
+  --color-leaf-50: #eff7f2;
+  --color-leaf-100: #d9ecdf;
+  --color-leaf-200: #b3d9c2;
+  --color-leaf-300: #83bf9e;
+  --color-leaf-400: #4e9e76;
+  --color-leaf-500: #2f8560;
+  --color-leaf-600: #1f6b4c;
+  --color-leaf-700: #195540;
+  --color-leaf-800: #144433;
+  --color-leaf-900: #0e3829;
+  --color-leaf-950: #07231a;
+
+  --color-haldi-300: #f5c86a;
+  --color-haldi-400: #eeb03c;
+  --color-haldi-500: #e0901f;
+  --color-haldi-600: #c47411;
+
+  --color-bkash: #e2136e;
+  --color-nagad: #f6921e;
+
+  --shadow-card: 0 1px 2px rgb(28 26 21 / 0.05), 0 8px 28px -12px rgb(28 26 21 / 0.14);
+  --shadow-lift: 0 2px 4px rgb(28 26 21 / 0.06), 0 18px 44px -12px rgb(28 26 21 / 0.22);
+
+  --animate-marquee: marquee 32s linear infinite;
+  --animate-float-slow: floatSlow 7s ease-in-out infinite;
+  --animate-float-med: floatSlow 5.5s ease-in-out infinite reverse;
+  --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+  50% { transform: translateY(-14px) rotate(var(--tilt, 0deg)); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-feature-settings: "liga" 1;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-leaf-600);
+  color: #fff;
+}
+
+/* কাগজের টেক্সচার */
+.paper-grain {
+  background-image: radial-gradient(rgb(28 26 21 / 0.055) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.grain-dark {
+  background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* স্ক্রলবার */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--color-paper); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-leaf-300);
+  border-radius: 999px;
+  border: 2px solid var(--color-paper);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-leaf-500); }
+
+input[type="month"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+input, select, textarea {
+  outline: none;
+}
