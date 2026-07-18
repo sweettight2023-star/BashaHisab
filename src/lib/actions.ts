@@ -353,6 +353,41 @@ export async function addTenant(
   return { success: "নতুন ভাড়াটিয়া যোগ হয়েছে" };
 }
 
+export async function updateTenant(
+  _prev: ActionState,
+  fd: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  const id = str(fd, "id");
+
+  const rows = await db
+    .select({ tenant: tenants, building: buildings })
+    .from(tenants)
+    .innerJoin(units, eq(tenants.unitId, units.id))
+    .innerJoin(buildings, eq(units.buildingId, buildings.id))
+    .where(eq(tenants.id, id))
+    .limit(1);
+  const row = rows[0];
+  if (!row) return { error: "ভাড়াটিয়া পাওয়া যায়নি" };
+  if (!(await hasBuildingAccess(user.id, row.building.userId)))
+    return { error: "অনুমতি নেই" };
+
+  const name = str(fd, "name");
+  if (name.length < 2) return { error: "ভাড়াটিয়ার নাম লিখুন" };
+
+  await db
+    .update(tenants)
+    .set({
+      name,
+      phone: str(fd, "phone"),
+      nid: str(fd, "nid"),
+      advance: num(fd, "advance"),
+    })
+    .where(eq(tenants.id, id));
+  revalidatePath(`/dashboard/buildings/${row.building.id}`);
+  return { success: "ভাড়াটিয়ার তথ্য হালনাগাদ হয়েছে" };
+}
+
 export async function endTenant(fd: FormData) {
   const user = await requireUser();
   const id = str(fd, "tenantId");

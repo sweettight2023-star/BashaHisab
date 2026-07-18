@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, isNull } from "drizzle-orm";
 import {
   CheckCircle2,
   Clock3,
@@ -10,7 +10,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { db } from "@/db";
-import { paymentRequests, users } from "@/db/schema";
+import { buildings, paymentRequests, users } from "@/db/schema";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { approvePayment, rejectPayment } from "@/lib/actions";
 import { bn, bnNum, dateLabel } from "@/lib/format";
@@ -27,7 +27,19 @@ export default async function AdminPage() {
     .innerJoin(users, eq(paymentRequests.userId, users.id))
     .orderBy(desc(paymentRequests.createdAt));
 
-  const allUsers = await db.select({ id: users.id, plan: users.plan }).from(users);
+  const allUsers = await db
+    .select()
+    .from(users)
+    .orderBy(desc(users.createdAt));
+
+  const activeBuildings = await db
+    .select({ id: buildings.id, userId: buildings.userId })
+    .from(buildings)
+    .where(isNull(buildings.archivedAt));
+  const buildingCountByUser = new Map<string, number>();
+  for (const b of activeBuildings) {
+    buildingCountByUser.set(b.userId, (buildingCountByUser.get(b.userId) ?? 0) + 1);
+  }
 
   const pending = requests.filter((r) => r.req.status === "pending");
   const resolved = requests.filter((r) => r.req.status !== "pending").slice(0, 15);
@@ -64,6 +76,66 @@ export default async function AdminPage() {
             <p className="font-serif text-2xl font-black">{s.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* সকল ব্যবহারকারী */}
+      <div className="mt-10">
+        <h2 className="font-serif text-2xl font-bold">
+          সকল ব্যবহারকারী ({bn(allUsers.length)})
+        </h2>
+        <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-cream shadow-card">
+          <table className="w-full min-w-[760px] text-left">
+            <thead>
+              <tr className="border-b border-line text-sm text-ink-soft">
+                <th className="px-5 py-3.5 font-semibold">নাম</th>
+                <th className="px-5 py-3.5 font-semibold">ফোন</th>
+                <th className="px-5 py-3.5 font-semibold">প্ল্যান</th>
+                <th className="px-5 py-3.5 font-semibold">মেয়াদ শেষ</th>
+                <th className="px-5 py-3.5 font-semibold">বিল্ডিং</th>
+                <th className="px-5 py-3.5 font-semibold">যোগ দিয়েছেন</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line/70">
+              {allUsers.map((u) => {
+                const activeNow =
+                  u.plan === "premium" &&
+                  u.premiumUntil &&
+                  new Date(u.premiumUntil) > new Date();
+                return (
+                  <tr key={u.id}>
+                    <td className="px-5 py-3.5 font-semibold">
+                      {u.name}
+                      {u.role === "admin" && (
+                        <span className="ml-2 rounded-full bg-leaf-100 px-2 py-0.5 text-[10px] font-black text-leaf-800">
+                          অ্যাডমিন
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5">{bn(u.phone)}</td>
+                    <td className="px-5 py-3.5">
+                      {activeNow ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-haldi-300/25 px-2.5 py-0.5 text-xs font-black text-haldi-700">
+                          <Crown className="h-3 w-3" /> প্রিমিয়াম
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-line/50 px-2.5 py-0.5 text-xs font-bold text-ink-soft">
+                          ফ্রি
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5 text-sm">
+                      {u.premiumUntil ? dateLabel(u.premiumUntil.toISOString().slice(0, 10)) : "—"}
+                    </td>
+                    <td className="px-5 py-3.5 font-bold">{bn(buildingCountByUser.get(u.id) ?? 0)}</td>
+                    <td className="px-5 py-3.5 text-sm">
+                      {dateLabel(u.createdAt.toISOString().slice(0, 10))}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* অপেক্ষমাণ */}

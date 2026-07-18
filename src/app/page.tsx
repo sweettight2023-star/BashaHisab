@@ -137,6 +137,9 @@ export default function LandingPage() {
               ,<br />
               এখন কাগজ নয় — মোবাইলে
             </h1>
+            <p className="mt-3 font-serif text-lg font-bold text-leaf-800 sm:text-xl">
+              স্মার্ট হোম, স্মার্ট হিসাব
+            </p>
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-ink-soft">
               ভাড়া আদায়, বকেয়ার ছক, মেরামত-বিলের খরচ — সবকিছুর গোছানো হিসাব রাখুন এক জায়গায়।
               আপনার ডেটা চিরকাল নিরাপদে সংরক্ষিত থাকবে, <span className="font-semibold text-ink">কখনো মুছে যাবে না।</span>

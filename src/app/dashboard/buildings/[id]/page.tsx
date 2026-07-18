@@ -7,6 +7,7 @@ import {
   HandCoins,
   History,
   MapPin,
+  Lock,
   MessageCircle,
   Printer,
   ReceiptText,
@@ -17,7 +18,7 @@ import {
 } from "lucide-react";
 import { db } from "@/db";
 import { buildings, expenses, rentPayments, tenants, units, users } from "@/db/schema";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isPremiumActive } from "@/lib/auth";
 import { hasBuildingAccess } from "@/lib/actions";
 import {
   bn,
@@ -39,6 +40,7 @@ import {
   MonthPicker,
   PaymentButton,
   TenantDialog,
+  TenantEditDialog,
   UnitEditDialog,
 } from "./client";
 
@@ -94,11 +96,13 @@ export default async function BuildingDetailPage({
   const isOwner = building.userId === user.id;
 
   const ownerRows = await db
-    .select({ name: users.name })
+    .select()
     .from(users)
     .where(eq(users.id, building.userId))
     .limit(1);
-  const ownerName = ownerRows[0]?.name ?? "বাসা মালিক";
+  const ownerUser = ownerRows[0] ?? null;
+  const ownerName = ownerUser?.name ?? "বাসা মালিক";
+  const ownerPremium = isPremiumActive(ownerUser);
 
   const unitRows = await db
     .select()
@@ -144,7 +148,8 @@ export default async function BuildingDetailPage({
   const paymentOf = new Map(paymentRows.map((p) => [p.unitId, p]));
 
   const monthTarget = unitRows.reduce(
-    (s, u) => s + (paymentOf.get(u.id)?.amountDue ?? u.monthlyRent),
+    (s, u) =>
+      s + (paymentOf.get(u.id)?.amountDue ?? (activeTenant.has(u.id) ? u.monthlyRent : 0)),
     0,
   );
   const monthCollected = paymentRows.reduce((s, p) => s + p.amountPaid, 0);
@@ -260,7 +265,7 @@ export default async function BuildingDetailPage({
                   const dueLeft = Math.max(dueAmt - paidAmt, 0);
 
                   const reminder =
-                    t?.phone && st !== "paid"
+                    ownerPremium && t?.phone && st !== "paid"
                       ? encodeURIComponent(
                           `অসসালামু আলাইকুম ${t.name},\n${building.name} এর ${u.name}-এর ${monthLabel(month)} মাসের ভাড়া ${taka(dueLeft)} বকেয়া রয়েছে। দয়া করে দ্রুত পরিশোধ করবেন।\n— ${ownerName}`,
                         )
@@ -302,6 +307,15 @@ export default async function BuildingDetailPage({
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center justify-end gap-2">
+                          {!ownerPremium && t?.phone && st !== "paid" && (
+                            <Link
+                              href="/dashboard/premium"
+                              title="হোয়াটসঅ্যাপ/SMS রিমাইন্ডার একটি প্রিমিয়াম ফিচার — চালু করতে ক্লিক করুন"
+                              className="flex h-9 w-9 items-center justify-center rounded-full bg-line/50 text-ink-soft transition hover:bg-haldi-300/30 hover:text-haldi-700"
+                            >
+                              <Lock className="h-4 w-4" />
+                            </Link>
+                          )}
                           {waLink && (
                             <a
                               href={waLink}
@@ -363,7 +377,7 @@ export default async function BuildingDetailPage({
         </div>
         <p className="mt-2.5 flex items-center gap-1.5 text-xs text-ink-soft">
           <MessageCircle className="h-3.5 w-3.5 text-[#128c4b]" />
-          বকেয়া আছে এমন ভাড়াটিয়ার পাশে হোয়াটসঅ্যাপ/SMS আইকনে ক্লিক করলেই রিমাইন্ডার মেসেজ প্রস্তুত হয়ে যাবে।
+          বকেয়া আছে এমন ভাড়াটিয়ার পাশে হোয়াটসঅ্যাপ/SMS আইকনে ক্লিক করলেই রিমাইন্ডার মেসেজ প্রস্তুত হয়ে যাবে (প্রিমিয়াম ফিচার)।
         </p>
       </section>
 
@@ -400,8 +414,11 @@ export default async function BuildingDetailPage({
                         উঠেছে {dateLabel(t.startDate)}
                         {t.advance > 0 ? ` • জামানত ${taka(t.advance)}` : ""}
                       </p>
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
                         <EndTenantButton tenantId={t.id} />
+                        <TenantEditDialog
+                          tenant={{ id: t.id, name: t.name, phone: t.phone, nid: t.nid, advance: t.advance }}
+                        />
                         <TenantDialog
                           unit={{ id: u.id, name: u.name, floor: u.floor, monthlyRent: u.monthlyRent }}
                           tenant={{ id: t.id, name: t.name, phone: t.phone, advance: t.advance, startDate: t.startDate }}

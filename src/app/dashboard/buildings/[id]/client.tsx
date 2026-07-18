@@ -27,6 +27,7 @@ import {
   restoreExpense,
   saveRentPayment,
   updateBuilding,
+  updateTenant,
   updateUnit,
   type ActionState,
 } from "@/lib/actions";
@@ -241,7 +242,81 @@ export function PaymentButton({
   );
 }
 
-/* ------------------------- নতুন ইউনিট ------------------------- */
+/* ------------------------- ভাড়াটিয়ার তথ্য সম্পাদনা (ফোন নম্বর ইত্যাদি) ------------------------- */
+
+export function TenantEditDialog({
+  tenant,
+}: {
+  tenant: { id: string; name: string; phone: string; nid: string; advance: number };
+}) {
+  const [open, setOpen] = useState(false);
+  const [state, formAction, pending] = useActionState<ActionState, FormData>(
+    updateTenant,
+    null,
+  );
+  useEffect(() => {
+    if (state?.success) setOpen(false);
+  }, [state]);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        title="ভাড়াটিয়ার তথ্য সম্পাদনা (ফোন নম্বর যোগ/পরিবর্তন)"
+        className="flex h-8 w-8 items-center justify-center rounded-full text-leaf-800 transition hover:bg-leaf-100"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={`${tenant.name} — তথ্য সম্পাদনা`}
+        icon={<Pencil className="h-5.5 w-5.5 text-leaf-700" />}
+      >
+        <StateMessages state={state} />
+        <form action={formAction} className="mt-5 space-y-4">
+          <input type="hidden" name="id" value={tenant.id} />
+          <Field label="ভাড়াটিয়ার নাম *">
+            <input name="name" required defaultValue={tenant.name} className={inputCls} />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="মোবাইল নম্বর">
+              <input
+                name="phone"
+                placeholder="01XXXXXXXXX"
+                defaultValue={tenant.phone}
+                className={inputCls}
+              />
+            </Field>
+            <Field label="অগ্রিম/জামানত (৳)">
+              <input
+                name="advance"
+                type="number"
+                min={0}
+                defaultValue={tenant.advance}
+                className={inputCls}
+              />
+            </Field>
+          </div>
+          <Field label="এনআইডি (ঐচ্ছিক)">
+            <input name="nid" defaultValue={tenant.nid} className={inputCls} />
+          </Field>
+          <p className="rounded-xl bg-leaf-50 px-4 py-2.5 text-xs leading-relaxed text-leaf-900">
+            ফোন নম্বর দিলে বকেয়া থাকা অবস্থায় হোয়াটসঅ্যাপ/SMS রিমাইন্ডার আইকন চালু হয়ে যাবে।
+          </p>
+          <button
+            type="submit"
+            disabled={pending}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-leaf-800 py-3 font-bold text-cream transition hover:bg-leaf-900 disabled:opacity-60"
+          >
+            {pending && <Loader2 className="h-4.5 w-4.5 animate-spin" />}
+            সংরক্ষণ করুন
+          </button>
+        </form>
+      </Modal>
+    </>
+  );
+}
 
 export function AddUnitForm({ buildingId }: { buildingId: string }) {
   const [open, setOpen] = useState(false);

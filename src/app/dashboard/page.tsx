@@ -3,6 +3,7 @@ import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import {
   ArrowRight,
   Building2,
+  Crown,
   DoorOpen,
   HandCoins,
   Landmark,
@@ -11,8 +12,8 @@ import {
   Wallet2,
 } from "lucide-react";
 import { db } from "@/db";
-import { buildings, expenses, rentPayments, units } from "@/db/schema";
-import { getCurrentUser } from "@/lib/auth";
+import { buildings, expenses, rentPayments, tenants, units } from "@/db/schema";
+import { getCurrentUser, isPremiumActive, FREE_LIMITS } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
   bn,
@@ -63,7 +64,25 @@ export default async function DashboardPage() {
         .orderBy(desc(expenses.expenseDate), desc(expenses.createdAt))
     : [];
 
-  const monthlyTarget = allUnits.reduce((s, u) => s + u.monthlyRent, 0);
+  /* খালি ইউনিটের ভাড়া "বকেয়া" হিসেবে গণনা করা হবে না */
+  const activeTenantRows = unitIds.length
+    ? await db
+        .select({ unitId: tenants.unitId })
+        .from(tenants)
+        .where(
+          and(
+            inArray(tenants.unitId, unitIds),
+            isNull(tenants.archivedAt),
+            isNull(tenants.endDate),
+          ),
+        )
+    : [];
+  const occupiedUnitIds = new Set(activeTenantRows.map((t) => t.unitId));
+
+  const monthlyTarget = allUnits.reduce(
+    (s, u) => s + (occupiedUnitIds.has(u.id) ? u.monthlyRent : 0),
+    0,
+  );
   const collected = payments.reduce((s, p) => s + p.amountPaid, 0);
   const due = Math.max(monthlyTarget - collected, 0);
   const spentThisMonth = allExpenses
@@ -120,6 +139,30 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {!isPremiumActive(user) && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-haldi-400/60 bg-haldi-300/10 p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-haldi-400/20 text-haldi-600">
+              <Crown className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-bold">
+                ফ্রি প্ল্যান — {bn(blds.length)}/{bn(FREE_LIMITS.buildings)} বিল্ডিং ব্যবহৃত
+              </p>
+              <p className="text-sm text-ink-soft">
+                প্রতি বিল্ডিংয়ে সর্বোচ্চ {bn(FREE_LIMITS.unitsPerBuilding)}টি ইউনিট। আনলিমিটেড বিল্ডিং ও ইউনিটের জন্য প্রিমিয়াম নিন।
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/premium"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-leaf-800 px-5 py-2.5 font-bold text-cream shadow-card transition hover:bg-leaf-900"
+          >
+            <Crown className="h-4 w-4" /> প্রিমিয়াম দেখুন
+          </Link>
+        </div>
+      )}
 
       {blds.length === 0 ? (
         <div className="mt-10 rounded-3xl border-2 border-dashed border-leaf-300 bg-leaf-50/60 p-12 text-center">
