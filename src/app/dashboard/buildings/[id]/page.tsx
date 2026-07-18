@@ -337,14 +337,24 @@ export default async function BuildingDetailPage({
                             </a>
                           )}
                           {p && p.amountPaid > 0 && (
-                            <Link
-                              href={`/receipt/${p.id}`}
-                              target="_blank"
-                              title="রশিদ দেখুন/প্রিন্ট (PDF)"
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-leaf-100 text-leaf-800 transition hover:bg-leaf-200"
-                            >
-                              <Printer className="h-4.5 w-4.5" />
-                            </Link>
+                            ownerPremium ? (
+                              <Link
+                                href={`/receipt/${p.id}`}
+                                target="_blank"
+                                title="রশিদ দেখুন/প্রিন্ট (PDF)"
+                                className="flex h-9 w-9 items-center justify-center rounded-full bg-leaf-100 text-leaf-800 transition hover:bg-leaf-200"
+                              >
+                                <Printer className="h-4.5 w-4.5" />
+                              </Link>
+                            ) : (
+                              <Link
+                                href="/dashboard/premium"
+                                title="রশিদ প্রিন্ট/PDF — প্রিমিয়াম ফিচার"
+                                className="flex h-9 w-9 items-center justify-center rounded-full bg-line/50 text-ink-soft transition hover:bg-haldi-300/30 hover:text-haldi-700"
+                              >
+                                <Lock className="h-4 w-4" />
+                              </Link>
+                            )
                           )}
                           <PaymentButton
                             unit={{ id: u.id, name: u.name, floor: u.floor, monthlyRent: u.monthlyRent }}

@@ -4,7 +4,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { ArrowLeft, Landmark, ShieldCheck } from "lucide-react";
 import { db } from "@/db";
 import { buildings, rentPayments, tenants, units, users } from "@/db/schema";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isPremiumActive } from "@/lib/auth";
 import { hasBuildingAccess } from "@/lib/actions";
 import { bn, dateLabel, monthLabel, taka } from "@/lib/format";
 import { PrintButton } from "./client";
@@ -35,11 +35,30 @@ export default async function ReceiptPage({
   if (!(await hasBuildingAccess(user.id, row.building.userId))) notFound();
 
   const ownerRows = await db
-    .select({ name: users.name, phone: users.phone })
+    .select()
     .from(users)
     .where(eq(users.id, row.building.userId))
     .limit(1);
   const owner = ownerRows[0];
+
+  /* রশিদ (প্রিন্ট/PDF) একটি প্রিমিয়াম ফিচার — মালিকের প্ল্যান অনুযায়ী */
+  if (!isPremiumActive(owner ?? null)) {
+    return (
+      <div className="mx-auto max-w-md animate-rise py-16 text-center">
+        <ShieldCheck className="mx-auto h-12 w-12 text-haldi-500" />
+        <h1 className="mt-4 font-serif text-2xl font-bold">এটি একটি প্রিমিয়াম ফিচার</h1>
+        <p className="mt-2 text-ink-soft">
+          ভাড়ার রশিদ (প্রিন্ট/PDF) ডাউনলোড করতে প্রিমিয়াম প্ল্যান প্রয়োজন।
+        </p>
+        <Link
+          href="/dashboard/premium"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-leaf-800 px-6 py-3 font-bold text-cream shadow-card transition hover:bg-leaf-900"
+        >
+          প্রিমিয়াম দেখুন
+        </Link>
+      </div>
+    );
+  }
 
   /* রশিদে ভাড়াটিয়ার নাম — পেমেন্টের সাথে সংরক্ষিত, না থাকলে সক্রিয় ভাড়াটিয়া */
   let tenantName = "—";
@@ -71,6 +90,17 @@ export default async function ReceiptPage({
   const receiptNo = `${p.month.replace("-", "")}-${p.id.slice(0, 6).toUpperCase()}`;
   const dueLeft = Math.max(p.amountDue - p.amountPaid, 0);
 
+  /* ওয়াটারমার্ক: ভাড়াটিয়ার নাম + ইউনিক রশিদ কোড + দেখা/প্রিন্ট করার তারিখ-সময় */
+  const viewedAt = new Intl.DateTimeFormat("bn-BD", {
+    timeZone: "Asia/Dhaka",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date());
+  const watermarkText = `${tenantName} • ${receiptNo} • ${viewedAt}`;
+
   return (
     <div className="min-h-screen bg-paper px-4 py-10 paper-grain">
       <style>{`@media print {
@@ -78,6 +108,7 @@ export default async function ReceiptPage({
         body { background: #fff !important; }
         .receipt-card { box-shadow: none !important; border: 1.5px solid #222 !important; }
         .paper-grain { background-image: none !important; }
+        .receipt-watermark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       }`}</style>
 
       <div className="no-print mx-auto mb-6 flex max-w-xl items-center justify-between">
@@ -90,7 +121,24 @@ export default async function ReceiptPage({
         <PrintButton />
       </div>
 
-      <div className="receipt-card mx-auto max-w-xl rounded-3xl border border-line bg-white p-8 shadow-lift sm:p-10">
+      <div className="receipt-card relative mx-auto max-w-xl overflow-hidden rounded-3xl border border-line bg-white p-8 shadow-lift sm:p-10">
+        {/* ওয়াটারমার্ক — সম্পূর্ণ কার্ড জুড়ে বারবার ভাড়াটিয়ার নাম/রশিদ কোড/সময় */}
+        <div
+          className="receipt-watermark pointer-events-none absolute inset-0 z-20 select-none overflow-hidden"
+          aria-hidden="true"
+        >
+          <div className="absolute inset-[-20%] flex flex-wrap content-around justify-around gap-x-8 gap-y-10 rotate-[-30deg]">
+            {Array.from({ length: 36 }).map((_, i) => (
+              <span
+                key={i}
+                className="whitespace-nowrap text-[11px] font-bold tracking-wide text-ink/[0.09]"
+              >
+                {watermarkText}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* হেডার */}
         <div className="flex items-start justify-between gap-4 border-b-2 border-dashed border-line pb-6">
           <div className="flex items-center gap-3">
