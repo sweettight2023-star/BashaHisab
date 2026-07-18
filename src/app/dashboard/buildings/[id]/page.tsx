@@ -337,24 +337,25 @@ export default async function BuildingDetailPage({
                             </a>
                           )}
                           {p && p.amountPaid > 0 && (
-                            ownerPremium ? (
-                              <Link
-                                href={`/receipt/${p.id}`}
-                                target="_blank"
-                                title="রশিদ দেখুন/প্রিন্ট (PDF)"
-                                className="flex h-9 w-9 items-center justify-center rounded-full bg-leaf-100 text-leaf-800 transition hover:bg-leaf-200"
-                              >
-                                <Printer className="h-4.5 w-4.5" />
-                              </Link>
-                            ) : (
-                              <Link
-                                href="/dashboard/premium"
-                                title="রশিদ প্রিন্ট/PDF — প্রিমিয়াম ফিচার"
-                                className="flex h-9 w-9 items-center justify-center rounded-full bg-line/50 text-ink-soft transition hover:bg-haldi-300/30 hover:text-haldi-700"
-                              >
-                                <Lock className="h-4 w-4" />
-                              </Link>
-                            )
+                            <Link
+                              href={`/receipt/${p.id}`}
+                              target="_blank"
+                              title={
+                                ownerPremium
+                                  ? "রশিদ দেখুন/প্রিন্ট (PDF)"
+                                  : "রশিদ দেখুন — বিস্তারিত তথ্যের জন্য প্রিমিয়াম প্রয়োজন"
+                              }
+                              className={
+                                ownerPremium
+                                  ? "relative flex h-9 w-9 items-center justify-center rounded-full bg-leaf-100 text-leaf-800 transition hover:bg-leaf-200"
+                                  : "relative flex h-9 w-9 items-center justify-center rounded-full bg-line/50 text-ink-soft transition hover:bg-haldi-300/30 hover:text-haldi-700"
+                              }
+                            >
+                              <Printer className="h-4.5 w-4.5" />
+                              {!ownerPremium && (
+                                <Lock className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-haldi-400 p-[3px] text-ink" />
+                              )}
+                            </Link>
                           )}
                           <PaymentButton
                             unit={{ id: u.id, name: u.name, floor: u.floor, monthlyRent: u.monthlyRent }}
