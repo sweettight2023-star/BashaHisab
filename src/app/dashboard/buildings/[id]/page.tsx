@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import {
+  AlertCircle,
   ArrowLeft,
   BedDouble,
+  FileBarChart2,
   HandCoins,
   History,
   MapPin,
@@ -26,6 +28,7 @@ import {
   currentMonth,
   dateLabel,
   expenseCategoryLabel,
+  isPastDue,
   monthLabel,
   taka,
 } from "@/lib/format";
@@ -194,6 +197,12 @@ export default async function BuildingDetailPage({
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <MonthPicker month={month} />
+          <Link
+            href={`/dashboard/buildings/${building.id}/statement`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-cream px-4 py-2.5 text-sm font-bold transition hover:bg-leaf-50"
+          >
+            <FileBarChart2 className="h-4 w-4" /> স্টেটমেন্ট
+          </Link>
           <EditBuildingDialog
             building={{
               id: building.id,
@@ -263,6 +272,7 @@ export default async function BuildingDetailPage({
                   const paidAmt = p?.amountPaid ?? 0;
                   const st = p?.status ?? "unpaid";
                   const dueLeft = Math.max(dueAmt - paidAmt, 0);
+                  const overdue = st !== "paid" && isPastDue(month, t?.startDate ?? "");
 
                   const reminder =
                     ownerPremium && t?.phone && st !== "paid"
@@ -304,6 +314,11 @@ export default async function BuildingDetailPage({
                         <span className={`rounded-full px-3 py-1 text-xs font-black ${statusPill(st)}`}>
                           {statusText(st)}
                         </span>
+                        {overdue && (
+                          <p className="mt-1 flex items-center gap-1 text-[11px] font-bold text-red-600">
+                            <AlertCircle className="h-3 w-3" /> মেয়াদ পার হয়ে গেছে
+                          </p>
+                        )}
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center justify-end gap-2">

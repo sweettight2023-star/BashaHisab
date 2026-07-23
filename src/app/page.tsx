@@ -431,6 +431,7 @@ export default function LandingPage() {
               <li><Link href="/login" className="hover:text-leaf-800">লগইন</Link></li>
               <li><Link href="/signup" className="hover:text-leaf-800">সাইন আপ</Link></li>
               <li><a href="#pricing" className="hover:text-leaf-800">প্রিমিয়াম প্যাকেজ</a></li>
+              <li><a href="mailto:bashahisab@gmail.com" className="hover:text-leaf-800">bashahisab@gmail.com</a></li>
             </ul>
           </div>
         </div>

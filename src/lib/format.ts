@@ -78,3 +78,30 @@ export const EXPENSE_CATEGORIES = [
 export function expenseCategoryLabel(key: string): string {
   return EXPENSE_CATEGORIES.find((c) => c.key === key)?.label ?? key;
 }
+
+/**
+ * ভাড়া জমা দেওয়ার নিয়ম:
+ * - ভাড়াটিয়া যে মাসে ওঠেন, সেই মাসের ভাড়ার ডেডলাইন হলো ওঠার তারিখ থেকে ঠিক ১ মাস পর।
+ * - পরবর্তী প্রতি মাসের ভাড়া ওই মাসের ১-১০ তারিখের মধ্যে দিতে হবে (ডেডলাইন: ১০ তারিখ)।
+ */
+export function rentDueDate(month: string, tenantStartDate: string): Date | null {
+  const [y, m] = month.split("-").map(Number);
+  if (!y || !m) return null;
+  const startMonth = tenantStartDate ? tenantStartDate.slice(0, 7) : "";
+
+  if (tenantStartDate && startMonth === month) {
+    const [sy, sm, sd] = tenantStartDate.split("-").map(Number);
+    if (sy && sm && sd) return new Date(sy, sm - 1 + 1, sd); // ওঠার তারিখ থেকে ঠিক ১ মাস পর
+  }
+  return new Date(y, m - 1, 10); // অন্য মাসগুলোর জন্য ওই মাসের ১০ তারিখ
+}
+
+/** ডেডলাইন পার হয়ে গেছে কিনা (আজকের তারিখ অনুযায়ী) */
+export function isPastDue(month: string, tenantStartDate: string): boolean {
+  const due = rentDueDate(month, tenantStartDate);
+  if (!due) return false;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+  return now > due;
+}

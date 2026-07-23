@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import {
+  AlertTriangle,
   ArrowRight,
   Building2,
   Crown,
@@ -21,6 +22,7 @@ import {
   currentMonth,
   expenseCategoryLabel,
   dateLabel,
+  isPastDue,
   monthLabel,
   taka,
 } from "@/lib/format";
@@ -67,7 +69,7 @@ export default async function DashboardPage() {
   /* খালি ইউনিটের ভাড়া "বকেয়া" হিসেবে গণনা করা হবে না */
   const activeTenantRows = unitIds.length
     ? await db
-        .select({ unitId: tenants.unitId })
+        .select({ unitId: tenants.unitId, startDate: tenants.startDate })
         .from(tenants)
         .where(
           and(
@@ -78,6 +80,12 @@ export default async function DashboardPage() {
         )
     : [];
   const occupiedUnitIds = new Set(activeTenantRows.map((t) => t.unitId));
+
+  const paymentByUnit = new Map(payments.map((p) => [p.unitId, p]));
+  const overdueCount = activeTenantRows.filter((t) => {
+    const st = paymentByUnit.get(t.unitId)?.status ?? "unpaid";
+    return st !== "paid" && isPastDue(month, t.startDate);
+  }).length;
 
   const monthlyTarget = allUnits.reduce(
     (s, u) => s + (occupiedUnitIds.has(u.id) ? u.monthlyRent : 0),
@@ -139,6 +147,24 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {overdueCount > 0 && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-red-300 bg-red-50 p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-bold text-red-700">
+                {bn(overdueCount)} জন ভাড়াটিয়ার ভাড়ার মেয়াদ পার হয়ে গেছে
+              </p>
+              <p className="text-sm text-ink-soft">
+                নতুন মাসের ১-১০ তারিখের মধ্যে ভাড়া না পেলে বকেয়া ধরা হয়। সংশ্লিষ্ট বিল্ডিংয়ে গিয়ে রিমাইন্ডার পাঠান।
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!isPremiumActive(user) && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-haldi-400/60 bg-haldi-300/10 p-5">

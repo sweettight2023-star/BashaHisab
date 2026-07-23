@@ -210,7 +210,9 @@ export function PaymentButton({
         <StateMessages state={state} />
         <form action={formAction} className="mt-5 space-y-4">
           <input type="hidden" name="unitId" value={unit.id} />
-          <input type="hidden" name="month" value={month} />
+          <Field label="কোন মাসের ভাড়া জমা দিচ্ছেন">
+            <input name="month" type="month" defaultValue={month} required className={inputCls} />
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="মাসিক ভাড়া (৳)">
               <input name="amountDue" type="number" min={0} defaultValue={due} required className={inputCls} />
@@ -226,7 +228,7 @@ export function PaymentButton({
             <input name="notes" defaultValue={payment?.notes ?? ""} placeholder="যেমন: নগদে নেওয়া হয়েছে" className={inputCls} />
           </Field>
           <p className="rounded-xl bg-leaf-50 px-4 py-2.5 text-xs leading-relaxed text-leaf-900">
-            পুরো ভাড়ার চেয়ে কম জমা দিলে “আংশিক” হিসেবে ধরা হবে; বাকি টাকা বকেয়া থেকে যাবে।
+            অন্য মাসের ভাড়া জমা নিলে উপর থেকে মাস বদলে দিন — মাসিক ভাড়া/জমার পরিমাণও প্রয়োজনে ঠিক করে নিন। পুরো ভাড়ার চেয়ে কম জমা দিলে “আংশিক” হিসেবে ধরা হবে।
           </p>
           <button
             type="submit"

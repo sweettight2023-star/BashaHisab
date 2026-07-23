@@ -11,6 +11,7 @@ import {
   HandCoins,
   History,
   Landmark,
+  Mail,
   PenLine,
   ReceiptText,
   UserPlus,
@@ -135,6 +136,21 @@ export default async function HelpPage() {
           </ol>
         </div>
       )}
+
+      <div className="mt-10 rounded-3xl border border-line bg-cream p-6 text-center shadow-card">
+        <h2 className="flex items-center justify-center gap-2 font-serif text-lg font-bold">
+          <Mail className="h-5 w-5 text-leaf-700" /> অফিশিয়াল যোগাযোগ
+        </h2>
+        <p className="mt-2 text-sm text-ink-soft">
+          কোনো প্রশ্ন, সমস্যা বা মতামত থাকলে ইমেইল করুন —
+        </p>
+        <a
+          href="mailto:bashahisab@gmail.com"
+          className="mt-1 inline-block font-bold text-leaf-800 underline underline-offset-2"
+        >
+          bashahisab@gmail.com
+        </a>
+      </div>
 
       <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-leaf-900 p-7 text-cream shadow-lift grain-dark">
         <div>
