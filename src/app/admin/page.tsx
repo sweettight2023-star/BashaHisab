@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import { desc, eq, isNull } from "drizzle-orm";
 import {
+  CalendarDays,
   CheckCircle2,
   Clock3,
   Crown,
   ShieldCheck,
+  TrendingUp,
   Users2,
   Wallet,
   XCircle,
@@ -43,20 +45,25 @@ export default async function AdminPage() {
 
   const pending = requests.filter((r) => r.req.status === "pending");
   const resolved = requests.filter((r) => r.req.status !== "pending").slice(0, 15);
+  const approvedReqs = requests.filter((r) => r.req.status === "approved");
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const monthStr = new Date().toISOString().slice(0, 7);
+  const todayIncome = approvedReqs
+    .filter((r) => r.req.resolvedAt && r.req.resolvedAt.toISOString().slice(0, 10) === todayStr)
+    .reduce((s, r) => s + r.req.amount, 0);
+  const monthIncome = approvedReqs
+    .filter((r) => r.req.resolvedAt && r.req.resolvedAt.toISOString().slice(0, 7) === monthStr)
+    .reduce((s, r) => s + r.req.amount, 0);
+  const totalIncome = approvedReqs.reduce((s, r) => s + r.req.amount, 0);
 
   const stats = [
     { icon: Users2, label: "মোট ব্যবহারকারী", value: bn(allUsers.length) },
     { icon: Crown, label: "প্রিমিয়াম সদস্য", value: bn(allUsers.filter((u) => u.plan === "premium").length) },
     { icon: Clock3, label: "অপেক্ষমাণ আবেদন", value: bn(pending.length) },
-    {
-      icon: Wallet,
-      label: "অনুমোদিত ইনকাম",
-      value: `৳ ${bnNum(
-        requests
-          .filter((r) => r.req.status === "approved")
-          .reduce((s, r) => s + r.req.amount, 0),
-      )}`,
-    },
+    { icon: CalendarDays, label: "আজকের আয়", value: `৳ ${bnNum(todayIncome)}` },
+    { icon: TrendingUp, label: "এই মাসের আয়", value: `৳ ${bnNum(monthIncome)}` },
+    { icon: Wallet, label: "সর্বমোট আয়", value: `৳ ${bnNum(totalIncome)}` },
   ];
 
   return (
@@ -68,7 +75,7 @@ export default async function AdminPage() {
         বিকাশ/নগদ পেমেন্ট যাচাই করে প্রিমিয়াম চালু করুন।
       </p>
 
-      <div className="mt-7 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {stats.map((s) => (
           <div key={s.label} className="rounded-2xl border border-line bg-cream p-5 shadow-card">
             <s.icon className="h-5.5 w-5.5 text-leaf-700" />
@@ -160,8 +167,8 @@ export default async function AdminPage() {
                     <p className="text-sm text-ink-soft">{bn(r.userPhone)}</p>
                   </div>
                   <div>
-                    <p className={`font-black ${r.req.method === "bkash" ? "text-bkash" : "text-nagad"}`}>
-                      {r.req.method === "bkash" ? "বিকাশ" : "নগদ"}
+                    <p className={`font-black ${r.req.method === "bkash" ? "text-bkash" : r.req.method === "nagad" ? "text-nagad" : "text-leaf-800"}`}>
+                      {r.req.method === "bkash" ? "বিকাশ" : r.req.method === "nagad" ? "নগদ" : "ব্যাংক"}
                     </p>
                     <p className="text-sm text-ink-soft">থেকে {bn(r.req.senderNumber)}</p>
                   </div>
@@ -219,7 +226,7 @@ export default async function AdminPage() {
                       <p className="text-xs text-ink-soft">{bn(r.userPhone)}</p>
                     </td>
                     <td className="px-5 py-3.5 font-bold">
-                      {r.req.method === "bkash" ? "বিকাশ" : "নগদ"}
+                      {r.req.method === "bkash" ? "বিকাশ" : r.req.method === "nagad" ? "নগদ" : "ব্যাংক"}
                     </td>
                     <td className="px-5 py-3.5 font-mono text-sm">{r.req.transactionId}</td>
                     <td className="px-5 py-3.5 font-bold">৳ {bnNum(r.req.amount)}</td>

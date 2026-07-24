@@ -8,6 +8,7 @@ import {
   FileBarChart2,
   HandCoins,
   History,
+  Landmark,
   MapPin,
   Lock,
   MessageCircle,
@@ -150,6 +151,9 @@ export default async function BuildingDetailPage({
     tenantRows.filter((t) => t.unitId === unitId && t.endDate).length;
   const paymentOf = new Map(paymentRows.map((p) => [p.unitId, p]));
 
+  /* খালি ইউনিট "ভাড়া আদায়ের ছক"-এ দেখানো হবে না */
+  const occupiedUnitRows = unitRows.filter((u) => activeTenant.has(u.id));
+
   const monthTarget = unitRows.reduce(
     (s, u) =>
       s + (paymentOf.get(u.id)?.amountDue ?? (activeTenant.has(u.id) ? u.monthlyRent : 0)),
@@ -160,6 +164,9 @@ export default async function BuildingDetailPage({
     .filter((e) => e.expenseDate.startsWith(month))
     .reduce((s, e) => s + e.amount, 0);
   const net = monthCollected - monthExpense;
+
+  /* জামানত/অগ্রিম — এটি মালিকের কাছে গচ্ছিত রাখা টাকা, প্রফিট/নীট আয়ের সাথে মেশানো হয় না */
+  const totalDeposit = Array.from(activeTenant.values()).reduce((s, t) => s + t.advance, 0);
 
   const chips = [
     { icon: HandCoins, label: "ভাড়া আদায়", value: taka(monthCollected) },
@@ -242,15 +249,33 @@ export default async function BuildingDetailPage({
         )}
       </div>
 
-      {/* ভাড়া আদায়ের ছক */}
+      {totalDeposit > 0 && (
+        <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-haldi-400/50 bg-haldi-300/10 px-5 py-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-haldi-400/20 text-haldi-700">
+              <Landmark className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-bold">জামানত/অগ্রিম সংরক্ষিত: {taka(totalDeposit)}</p>
+              <p className="text-xs text-ink-soft">
+                এই টাকা ভাড়াটিয়াদের জামানত — এটি আপনার আয়/নীট প্রফিটের অংশ নয়, ভাড়াটিয়া চলে গেলে ফেরতযোগ্য হিসেবে আলাদা রাখা।
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ভাড়া আদায়ের ছক — শুধু সক্রিয় ভাড়াটিয়া থাকা ইউনিট */}
       <section className="mt-10">
         <h2 className="font-serif text-2xl font-bold">
           ভাড়া আদায়ের ছক — <span className="text-leaf-800">{monthLabel(month)}</span>
         </h2>
         <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-cream shadow-card">
-          {unitRows.length === 0 ? (
+          {occupiedUnitRows.length === 0 ? (
             <p className="p-8 text-center text-ink-soft">
-              আগে নিচ থেকে ইউনিট (ফ্ল্যাট/কক্ষ) যোগ করুন।
+              {unitRows.length === 0
+                ? "আগে নিচ থেকে ইউনিট (ফ্ল্যাট/কক্ষ) যোগ করুন।"
+                : "কোনো ইউনিটে এখনো ভাড়াটিয়া ওঠেননি — সব ইউনিট খালি আছে।"}
             </p>
           ) : (
             <table className="w-full min-w-[860px] text-left">
@@ -265,7 +290,7 @@ export default async function BuildingDetailPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-line/70">
-                {unitRows.map((u) => {
+                {occupiedUnitRows.map((u) => {
                   const p = paymentOf.get(u.id);
                   const t = activeTenant.get(u.id);
                   const dueAmt = p?.amountDue ?? u.monthlyRent;
@@ -275,7 +300,7 @@ export default async function BuildingDetailPage({
                   const overdue = st !== "paid" && isPastDue(month, t?.startDate ?? "");
 
                   const reminder =
-                    ownerPremium && t?.phone && st !== "paid"
+                    ownerPremium && t?.phone && st !== "paid" && isReminderTime(month, t.startDate)
                       ? encodeURIComponent(
                           `অসসালামু আলাইকুম ${t.name},\n${building.name} এর ${u.name}-এর ${monthLabel(month)} মাসের ভাড়া ${taka(dueLeft)} বকেয়া রয়েছে। দয়া করে দ্রুত পরিশোধ করবেন।\n— ${ownerName}`,
                         )

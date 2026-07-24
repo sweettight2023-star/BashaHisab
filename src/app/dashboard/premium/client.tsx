@@ -8,6 +8,12 @@ import { bn } from "@/lib/format";
 const inputCls =
   "w-full rounded-xl border border-line bg-paper px-4 py-3 font-medium transition focus:border-leaf-600 focus:ring-4 focus:ring-leaf-600/10";
 
+const BANK = {
+  bankName: "ইসলামী ব্যাংক বাংলাদেশ পিএলসি (Islami Bank)",
+  accountName: "MD SHAFIUL BASHAR",
+  accountNumber: "2050 371 02 01225009",
+};
+
 const PACKAGES = [
   { months: 1, price: 299, label: "১ মাস" },
   { months: 6, price: 1499, label: "৬ মাস" },
@@ -15,7 +21,7 @@ const PACKAGES = [
 ];
 
 export function PaymentForm() {
-  const [method, setMethod] = useState<"bkash" | "nagad">("bkash");
+  const [method, setMethod] = useState<"bkash" | "nagad" | "bank">("bkash");
   const [months, setMonths] = useState(1);
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     submitPayment,
@@ -60,18 +66,19 @@ export function PaymentForm() {
 
       {/* মাধ্যম */}
       <p className="mt-5 text-sm font-semibold text-ink-soft">পেমেন্ট মাধ্যম</p>
-      <div className="mt-2 grid grid-cols-2 gap-3">
+      <div className="mt-2 grid grid-cols-3 gap-3">
         {(
           [
             { key: "bkash", label: "বিকাশ", cls: "bg-[#e2136e]" },
             { key: "nagad", label: "নগদ", cls: "bg-[#f6921e]" },
+            { key: "bank", label: "ব্যাংক", cls: "bg-leaf-800" },
           ] as const
         ).map((m) => (
           <button
             key={m.key}
             type="button"
             onClick={() => setMethod(m.key)}
-            className={`rounded-xl px-4 py-3.5 font-serif text-lg font-black transition ${
+            className={`rounded-xl px-3 py-3.5 font-serif text-base font-black transition ${
               method === m.key
                 ? `${m.cls} text-white shadow-lift`
                 : "border border-line bg-paper text-ink-soft hover:border-leaf-400"
@@ -81,6 +88,18 @@ export function PaymentForm() {
           </button>
         ))}
       </div>
+
+      {method === "bank" && (
+        <div className="mt-4 space-y-1.5 rounded-xl border border-leaf-300 bg-leaf-50 p-4 text-sm">
+          <p className="font-bold text-leaf-900">{BANK.bankName}</p>
+          <p>
+            নাম: <span className="font-bold">{BANK.accountName}</span>
+          </p>
+          <p>
+            হিসাব নম্বর: <span className="font-mono font-bold">{BANK.accountNumber}</span>
+          </p>
+        </div>
+      )}
 
       {/* প্যাকেজ */}
       <p className="mt-5 text-sm font-semibold text-ink-soft">প্যাকেজ নির্বাচন</p>
@@ -109,13 +128,30 @@ export function PaymentForm() {
         <input type="hidden" name="months" value={months} />
         <label className="block">
           <span className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-ink-soft">
-            <Smartphone className="h-4 w-4" /> যে নম্বর থেকে {method === "bkash" ? "বিকাশ" : "নগদ"} করেছেন
+            <Smartphone className="h-4 w-4" />
+            {method === "bank"
+              ? "যে অ্যাকাউন্ট থেকে টাকা পাঠিয়েছেন (নাম/নম্বর)"
+              : `যে নম্বর থেকে ${method === "bkash" ? "বিকাশ" : "নগদ"} করেছেন`}
           </span>
-          <input name="senderNumber" type="tel" inputMode="numeric" required placeholder="01XXXXXXXXX" className={inputCls} />
+          <input
+            name="senderNumber"
+            type={method === "bank" ? "text" : "tel"}
+            inputMode={method === "bank" ? "text" : "numeric"}
+            required
+            placeholder={method === "bank" ? "যেমন: করিম উদ্দিন, ব্র্যাক ব্যাংক" : "01XXXXXXXXX"}
+            className={inputCls}
+          />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-ink-soft">ট্রানজেকশন আইডি (TrxID)</span>
-          <input name="transactionId" required placeholder="যেমন: 9HXXXXXXX2" className={inputCls} />
+          <span className="mb-1.5 block text-sm font-semibold text-ink-soft">
+            {method === "bank" ? "ব্যাংক রেফারেন্স/ট্রানজেকশন নম্বর" : "ট্রানজেকশন আইডি (TrxID)"}
+          </span>
+          <input
+            name="transactionId"
+            required
+            placeholder={method === "bank" ? "যেমন: FT2607180001234" : "যেমন: 9HXXXXXXX2"}
+            className={inputCls}
+          />
         </label>
         <button
           type="submit"

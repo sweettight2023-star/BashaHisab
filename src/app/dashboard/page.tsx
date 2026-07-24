@@ -69,7 +69,7 @@ export default async function DashboardPage() {
   /* খালি ইউনিটের ভাড়া "বকেয়া" হিসেবে গণনা করা হবে না */
   const activeTenantRows = unitIds.length
     ? await db
-        .select({ unitId: tenants.unitId, startDate: tenants.startDate })
+        .select({ unitId: tenants.unitId, startDate: tenants.startDate, advance: tenants.advance })
         .from(tenants)
         .where(
           and(
@@ -80,6 +80,7 @@ export default async function DashboardPage() {
         )
     : [];
   const occupiedUnitIds = new Set(activeTenantRows.map((t) => t.unitId));
+  const totalDeposit = activeTenantRows.reduce((s, t) => s + t.advance, 0);
 
   const paymentByUnit = new Map(payments.map((p) => [p.unitId, p]));
   const overdueCount = activeTenantRows.filter((t) => {
@@ -115,6 +116,7 @@ export default async function DashboardPage() {
     { icon: DoorOpen, label: "মোট ইউনিট", value: bn(allUnits.length), sub: "ফ্ল্যাট/কক্ষ" },
     { icon: HandCoins, label: `${monthLabel(month)} — আদায়`, value: taka(collected), sub: monthlyTarget ? `লক্ষ্য ${taka(monthlyTarget)}` : "" },
     { icon: Wallet2, label: "এই মাসে খরচ", value: taka(spentThisMonth), sub: due > 0 ? `বকেয়া ভাড়া ${taka(due)}` : "বকেয়া নেই" },
+    { icon: Landmark, label: "জামানত সংরক্ষিত", value: taka(totalDeposit), sub: "প্রফিটের অংশ নয়" },
   ];
 
   return (

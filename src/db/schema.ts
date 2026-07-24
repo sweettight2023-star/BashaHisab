@@ -14,7 +14,7 @@ import {
 /* ------------------------------------------------------------------ */
 
 export const planEnum = pgEnum("plan", ["free", "premium"]);
-export const paymentMethodEnum = pgEnum("payment_method", ["bkash", "nagad"]);
+export const paymentMethodEnum = pgEnum("payment_method", ["bkash", "nagad", "bank"]);
 export const paymentStatusEnum = pgEnum("payment_request_status", [
   "pending",
   "approved",

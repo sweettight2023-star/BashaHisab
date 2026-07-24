@@ -66,14 +66,20 @@ export default async function PremiumPage() {
         <div className="space-y-6">
           <div className="rounded-3xl bg-leaf-900 p-7 text-cream shadow-lift grain-dark">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-haldi-300">
-              ধাপ ১ — সেন্ড মানি করুন
+              ধাপ ১ — টাকা পাঠান
             </p>
             <p className="mt-3 font-serif text-4xl font-black tracking-wide">{bn(ADMIN_PHONE)}</p>
             <p className="mt-1 text-sm text-cream/70">বিকাশ বা নগদ — পার্সোনাল নম্বর</p>
+            <div className="mt-5 rounded-2xl bg-cream/10 p-4 text-sm leading-relaxed">
+              <p className="font-bold text-haldi-300">অথবা সরাসরি ব্যাংকে —</p>
+              <p className="mt-1">ইসলামী ব্যাংক বাংলাদেশ পিএলসি</p>
+              <p>নাম: MD SHAFIUL BASHAR</p>
+              <p className="font-mono">হিসাব নম্বর: 2050 371 02 01225009</p>
+            </div>
             <div className="mt-5 space-y-2.5 text-[15px] leading-relaxed text-cream/85">
-              <p className="flex gap-2.5"><span className="font-black text-haldi-300">১.</span> বিকাশ/নগদ অ্যাপে “সেন্ড মানি” যান</p>
-              <p className="flex gap-2.5"><span className="font-black text-haldi-300">২.</span> উপরের নম্বরে প্যাকেজের টাকা পাঠান</p>
-              <p className="flex gap-2.5"><span className="font-black text-haldi-300">৩.</span> পাওয়া TrxID টি নিচের ফর্মে জমা দিন</p>
+              <p className="flex gap-2.5"><span className="font-black text-haldi-300">১.</span> বিকাশ/নগদ/ব্যাংক — যেকোনো একটি মাধ্যমে টাকা পাঠান</p>
+              <p className="flex gap-2.5"><span className="font-black text-haldi-300">২.</span> প্যাকেজের সঠিক পরিমাণ পাঠান</p>
+              <p className="flex gap-2.5"><span className="font-black text-haldi-300">৩.</span> পাওয়া TrxID/রেফারেন্স নম্বর নিচের ফর্মে জমা দিন</p>
               <p className="flex gap-2.5"><span className="font-black text-haldi-300">৪.</span> যাচাইয়ের পর প্রিমিয়াম চালু — মেয়াদকাল স্বয়ংক্রিয় যোগ হবে</p>
             </div>
           </div>
@@ -112,8 +118,8 @@ export default async function PremiumPage() {
                   <tr key={r.id}>
                     <td className="px-5 py-3.5 text-sm">{dateLabel(r.createdAt.toISOString().slice(0, 10))}</td>
                     <td className="px-5 py-3.5 font-bold">
-                      <span className={r.method === "bkash" ? "text-bkash" : "text-nagad"}>
-                        {r.method === "bkash" ? "বিকাশ" : "নগদ"}
+                      <span className={r.method === "bkash" ? "text-bkash" : r.method === "nagad" ? "text-nagad" : "text-leaf-800"}>
+                        {r.method === "bkash" ? "বিকাশ" : r.method === "nagad" ? "নগদ" : "ব্যাংক"}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 font-mono text-sm">{r.transactionId}</td>

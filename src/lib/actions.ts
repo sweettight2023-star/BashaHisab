@@ -652,12 +652,15 @@ export async function submitPayment(
 ): Promise<ActionState> {
   const user = await requireUser();
   const method = str(fd, "method");
-  if (method !== "bkash" && method !== "nagad")
+  if (method !== "bkash" && method !== "nagad" && method !== "bank")
     return { error: "পেমেন্ট মাধ্যম নির্বাচন করুন" };
 
   const senderNumber = str(fd, "senderNumber");
-  if (!validPhone(senderNumber))
+  if (method === "bank") {
+    if (senderNumber.length < 3) return { error: "যে অ্যাকাউন্ট থেকে পাঠিয়েছেন তার তথ্য দিন" };
+  } else if (!validPhone(senderNumber)) {
     return { error: "যে নম্বর থেকে পাঠিয়েছেন, সঠিক ১১ সংখ্যার নম্বর দিন" };
+  }
 
   const transactionId = str(fd, "transactionId");
   if (transactionId.length < 6)

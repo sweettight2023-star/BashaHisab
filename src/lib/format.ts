@@ -81,7 +81,7 @@ export function expenseCategoryLabel(key: string): string {
 
 /**
  * ভাড়া জমা দেওয়ার নিয়ম:
- * - ভাড়াটিয়া যে মাসে ওঠেন, সেই মাসের ভাড়ার ডেডলাইন হলো ওঠার তারিখ থেকে ঠিক ১ মাস পর।
+ * - ভাড়াটিয়া যে মাসে ওঠেন, সেই মাসের ভাড়ার ডেডলাইন হলো সেই মাসের শেষ দিন।
  * - পরবর্তী প্রতি মাসের ভাড়া ওই মাসের ১-১০ তারিখের মধ্যে দিতে হবে (ডেডলাইন: ১০ তারিখ)।
  */
 export function rentDueDate(month: string, tenantStartDate: string): Date | null {
@@ -90,8 +90,7 @@ export function rentDueDate(month: string, tenantStartDate: string): Date | null
   const startMonth = tenantStartDate ? tenantStartDate.slice(0, 7) : "";
 
   if (tenantStartDate && startMonth === month) {
-    const [sy, sm, sd] = tenantStartDate.split("-").map(Number);
-    if (sy && sm && sd) return new Date(sy, sm - 1 + 1, sd); // ওঠার তারিখ থেকে ঠিক ১ মাস পর
+    return new Date(y, m, 0); // ওঠার মাসের শেষ দিন (day 0 of next month = last day of this month)
   }
   return new Date(y, m - 1, 10); // অন্য মাসগুলোর জন্য ওই মাসের ১০ তারিখ
 }
@@ -104,4 +103,18 @@ export function isPastDue(month: string, tenantStartDate: string): boolean {
   now.setHours(0, 0, 0, 0);
   due.setHours(0, 0, 0, 0);
   return now > due;
+}
+
+/** মাসের ১ তারিখ পার হয়ে গেলে বকেয়া থাকা ভাড়াটিয়াকে রিমাইন্ডার পাঠানোর সময় হয়েছে কিনা */
+export function isReminderTime(month: string, tenantStartDate: string): boolean {
+  const [y, m] = month.split("-").map(Number);
+  if (!y || !m) return false;
+  const startMonth = tenantStartDate ? tenantStartDate.slice(0, 7) : "";
+  if (tenantStartDate && startMonth === month) return false; // ওঠার মাসেই, ডেডলাইন তো মাস শেষেই
+
+  const reminderFrom = new Date(y, m - 1, 1);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  reminderFrom.setHours(0, 0, 0, 0);
+  return now >= reminderFrom;
 }
