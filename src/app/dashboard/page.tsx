@@ -66,7 +66,7 @@ export default async function DashboardPage() {
         .orderBy(desc(expenses.expenseDate), desc(expenses.createdAt))
     : [];
 
-  /* খালি ইউনিটের ভাড়া "বকেয়া" হিসেবে গণনা করা হবে না */
+  /* খালি বা ভবিষ্যতে ওঠা (এই মাসে এখনো না-ওঠা) ইউনিটের ভাড়া "বকেয়া"/টার্গেট হিসেবে গণনা হবে না */
   const activeTenantRows = unitIds.length
     ? await db
         .select({ unitId: tenants.unitId, startDate: tenants.startDate, advance: tenants.advance })
@@ -79,11 +79,12 @@ export default async function DashboardPage() {
           ),
         )
     : [];
-  const occupiedUnitIds = new Set(activeTenantRows.map((t) => t.unitId));
+  const movedInTenantRows = activeTenantRows.filter((t) => t.startDate <= `${month}-31`);
+  const occupiedUnitIds = new Set(movedInTenantRows.map((t) => t.unitId));
   const totalDeposit = activeTenantRows.reduce((s, t) => s + t.advance, 0);
 
   const paymentByUnit = new Map(payments.map((p) => [p.unitId, p]));
-  const overdueCount = activeTenantRows.filter((t) => {
+  const overdueCount = movedInTenantRows.filter((t) => {
     const st = paymentByUnit.get(t.unitId)?.status ?? "unpaid";
     return st !== "paid" && isPastDue(month, t.startDate);
   }).length;

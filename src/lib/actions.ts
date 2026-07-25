@@ -545,6 +545,61 @@ export async function restoreExpense(fd: FormData) {
   revalidatePath(`/dashboard/buildings/${row.building.id}`);
 }
 
+export async function updateExpense(
+  _prev: ActionState,
+  fd: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  const row = await expenseAccess(user.id, str(fd, "id"));
+  if (!row) return { error: "খরচের এন্ট্রি পাওয়া যায়নি" };
+  if (row.building.userId !== user.id)
+    return { error: "শুধু বাড়ির মালিকই খরচের তথ্য পরিবর্তন করতে পারবেন" };
+
+  const amount = num(fd, "amount");
+  if (amount < 1) return { error: "খরচের পরিমাণ লিখুন" };
+
+  await db
+    .update(expenses)
+    .set({
+      amount,
+      category: str(fd, "category") || "other",
+      expenseDate: str(fd, "expenseDate") || today(),
+      description: str(fd, "description"),
+    })
+    .where(eq(expenses.id, row.expense.id));
+  revalidatePath(`/dashboard/buildings/${row.building.id}`);
+  return { success: "খরচের তথ্য হালনাগাদ হয়েছে" };
+}
+
+export async function deleteExpense(fd: FormData) {
+  const user = await requireUser();
+  const row = await expenseAccess(user.id, str(fd, "id"));
+  if (!row) return;
+  if (row.building.userId !== user.id) return; // শুধু মালিক ডিলিট করতে পারবেন
+  await db.delete(expenses).where(eq(expenses.id, row.expense.id));
+  revalidatePath(`/dashboard/buildings/${row.building.id}`);
+}
+
+/* ------------------------- ভাড়া জমার এন্ট্রি ডিলিট (ভুল ইউনিটে জমা সংশোধনের জন্য) ------------------------- */
+
+export async function deleteRentPayment(fd: FormData) {
+  const user = await requireUser();
+  const id = str(fd, "id");
+  const rows = await db
+    .select({ payment: rentPayments, building: buildings })
+    .from(rentPayments)
+    .innerJoin(units, eq(rentPayments.unitId, units.id))
+    .innerJoin(buildings, eq(units.buildingId, buildings.id))
+    .where(eq(rentPayments.id, id))
+    .limit(1);
+  const row = rows[0];
+  if (!row) return;
+  if (row.building.userId !== user.id) return; // শুধু মালিক ডিলিট করতে পারবেন
+  await db.delete(rentPayments).where(eq(rentPayments.id, id));
+  revalidatePath(`/dashboard/buildings/${row.building.id}`);
+  revalidatePath("/dashboard");
+}
+
 /* ================================================================== */
 /*  স্টাফ/ম্যানেজার অ্যাক্সেস (একাধিক লগইন)                                */
 /* ================================================================== */

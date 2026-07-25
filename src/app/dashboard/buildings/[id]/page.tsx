@@ -39,8 +39,11 @@ import {
   ArchiveExpenseButton,
   ArchiveUnitButton,
   ArchivedExpenses,
+  DeleteExpenseButton,
+  DeletePaymentButton,
   EditBuildingDialog,
   EndTenantButton,
+  ExpenseEditDialog,
   ExpenseForm,
   MonthPicker,
   PaymentButton,
@@ -152,12 +155,17 @@ export default async function BuildingDetailPage({
     tenantRows.filter((t) => t.unitId === unitId && t.endDate).length;
   const paymentOf = new Map(paymentRows.map((p) => [p.unitId, p]));
 
-  /* খালি ইউনিট "ভাড়া আদায়ের ছক"-এ দেখানো হবে না */
-  const occupiedUnitRows = unitRows.filter((u) => activeTenant.has(u.id));
+  /* ভাড়াটিয়া এই মাসের মধ্যেই উঠেছেন কিনা (ভবিষ্যতে ওঠার তারিখ থাকলে এই মাসে গণ্য হবে না) */
+  const movedInByMonth = (unitId: string) => {
+    const t = activeTenant.get(unitId);
+    return !!t && t.startDate <= `${month}-31`;
+  };
+
+  /* খালি বা এখনো না-ওঠা ইউনিট "ভাড়া আদায়ের ছক"-এ দেখানো হবে না */
+  const occupiedUnitRows = unitRows.filter((u) => movedInByMonth(u.id));
 
   const monthTarget = unitRows.reduce(
-    (s, u) =>
-      s + (paymentOf.get(u.id)?.amountDue ?? (activeTenant.has(u.id) ? u.monthlyRent : 0)),
+    (s, u) => s + (paymentOf.get(u.id)?.amountDue ?? (movedInByMonth(u.id) ? u.monthlyRent : 0)),
     0,
   );
   const monthCollected = paymentRows.reduce((s, p) => s + p.amountPaid, 0);
@@ -418,6 +426,7 @@ export default async function BuildingDetailPage({
                                 : null
                             }
                           />
+                          {isOwner && p && <DeletePaymentButton id={p.id} />}
                         </div>
                       </td>
                     </tr>
@@ -502,7 +511,9 @@ export default async function BuildingDetailPage({
       <section className="mt-12">
         <h2 className="font-serif text-2xl font-bold">খরচের খাতা</h2>
         <p className="mt-1 text-sm text-ink-soft">
-          সব খরচ চিরকাল সংরক্ষিত থাকে — আর্কাইভ করলেও মুছে যায় না।
+          {isOwner
+            ? "ভুল এন্ট্রি হলে এডিট বা মুছে ফেলতে পারবেন — এই সুবিধা শুধু বাড়ির মালিকের জন্য।"
+            : "সব খরচের হিসাব এখানে সংরক্ষিত থাকে।"}
         </p>
         <div className="mt-4">
           <ExpenseForm buildingId={building.id} />
@@ -523,8 +534,22 @@ export default async function BuildingDetailPage({
                     </p>
                     <p className="text-xs text-ink-soft">{dateLabel(e.expenseDate)}</p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className="font-bold text-haldi-600">− {taka(e.amount)}</span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <span className="mr-1 font-bold text-haldi-600">− {taka(e.amount)}</span>
+                    {isOwner && (
+                      <>
+                        <ExpenseEditDialog
+                          expense={{
+                            id: e.id,
+                            category: e.category,
+                            amount: e.amount,
+                            expenseDate: e.expenseDate,
+                            description: e.description,
+                          }}
+                        />
+                        <DeleteExpenseButton id={e.id} />
+                      </>
+                    )}
                     <ArchiveExpenseButton id={e.id} />
                   </div>
                 </li>

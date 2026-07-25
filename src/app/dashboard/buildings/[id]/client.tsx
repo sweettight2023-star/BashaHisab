@@ -13,6 +13,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  Trash2,
   UserMinus,
   UserPlus,
   X,
@@ -23,10 +24,13 @@ import {
   archiveExpense,
   archiveUnit,
   createUnit,
+  deleteExpense,
+  deleteRentPayment,
   endTenant,
   restoreExpense,
   saveRentPayment,
   updateBuilding,
+  updateExpense,
   updateTenant,
   updateUnit,
   type ActionState,
@@ -628,6 +632,111 @@ export function ArchiveExpenseButton({ id }: { id: string }) {
         className="rounded-full p-1.5 text-ink-soft/60 transition hover:bg-line/50 hover:text-ink"
       >
         <Archive className="h-4 w-4" />
+      </button>
+    </form>
+  );
+}
+
+export function ExpenseEditDialog({
+  expense,
+}: {
+  expense: { id: string; category: string; amount: number; expenseDate: string; description: string };
+}) {
+  const [open, setOpen] = useState(false);
+  const [state, formAction, pending] = useActionState<ActionState, FormData>(
+    updateExpense,
+    null,
+  );
+  useEffect(() => {
+    if (state?.success) setOpen(false);
+  }, [state]);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        title="খরচের তথ্য এডিট করুন"
+        className="rounded-full p-1.5 text-leaf-800 transition hover:bg-leaf-100"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)} title="খরচ সম্পাদনা" icon={<Pencil className="h-5.5 w-5.5 text-leaf-700" />}>
+        <StateMessages state={state} />
+        <form action={formAction} className="mt-5 space-y-4">
+          <input type="hidden" name="id" value={expense.id} />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="ধরন">
+              <select name="category" defaultValue={expense.category} className={inputCls}>
+                {EXPENSE_CATEGORIES.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="পরিমাণ (৳)">
+              <input name="amount" type="number" min={1} required defaultValue={expense.amount} className={inputCls} />
+            </Field>
+          </div>
+          <Field label="তারিখ">
+            <input name="expenseDate" type="date" defaultValue={expense.expenseDate} className={inputCls} />
+          </Field>
+          <Field label="বিবরণ (ঐচ্ছিক)">
+            <input name="description" defaultValue={expense.description} className={inputCls} />
+          </Field>
+          <button
+            type="submit"
+            disabled={pending}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-leaf-800 py-3 font-bold text-cream transition hover:bg-leaf-900 disabled:opacity-60"
+          >
+            {pending && <Loader2 className="h-4.5 w-4.5 animate-spin" />}
+            সংরক্ষণ করুন
+          </button>
+        </form>
+      </Modal>
+    </>
+  );
+}
+
+export function DeleteExpenseButton({ id }: { id: string }) {
+  return (
+    <form
+      action={deleteExpense}
+      onSubmit={(e) => {
+        if (!confirm("এই খরচের এন্ট্রি স্থায়ীভাবে মুছে ফেলা হবে, ফেরত আনা যাবে না। নিশ্চিত?"))
+          e.preventDefault();
+      }}
+    >
+      <input type="hidden" name="id" value={id} />
+      <button
+        title="স্থায়ীভাবে মুছুন"
+        className="rounded-full p-1.5 text-red-500/70 transition hover:bg-red-50 hover:text-red-600"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </form>
+  );
+}
+
+export function DeletePaymentButton({ id }: { id: string }) {
+  return (
+    <form
+      action={deleteRentPayment}
+      onSubmit={(e) => {
+        if (
+          !confirm(
+            "এই ভাড়া জমার এন্ট্রি স্থায়ীভাবে মুছে ফেলা হবে (ভুল ইউনিটে জমা হলে এটাই সংশোধনের উপায়)। নিশ্চিত?",
+          )
+        )
+          e.preventDefault();
+      }}
+    >
+      <input type="hidden" name="id" value={id} />
+      <button
+        title="এই মাসের জমা এন্ট্রি মুছুন (ভুল সংশোধন)"
+        className="flex h-9 w-9 items-center justify-center rounded-full text-red-500/70 transition hover:bg-red-50 hover:text-red-600"
+      >
+        <Trash2 className="h-4.5 w-4.5" />
       </button>
     </form>
   );
