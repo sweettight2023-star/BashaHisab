@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Hind_Siliguri, Noto_Serif_Bengali } from "next/font/google";
 import "./globals.css";
+import { RegisterSW } from "./register-sw";
 
 const hindSiliguri = Hind_Siliguri({
   subsets: ["bengali", "latin"],
@@ -21,12 +22,34 @@ export const metadata: Metadata = {
   title: "বাসা হিসাব — বাসা-বাড়ির ভাড়া ও খরচের নিরাপদ ডিজিটাল খাতা",
   description:
     "বাসা মালিকদের জন্য সহজ হিসাব: একাধিক বিল্ডিং, মাসিক ভাড়া আদায়, খরচের খাতা — সবকিছু চিরকালের জন্য নিরাপদে সংরক্ষিত। প্রিমিয়াম সাবস্ক্রিপশন বিকাশ/নগদে।",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "বাসা হিসাব",
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#144433",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="bn" className={`${hindSiliguri.variable} ${notoSerifBengali.variable}`}>
-      <body className="bg-paper text-ink font-sans antialiased">{children}</body>
+      <body className="bg-paper text-ink font-sans antialiased">
+        {children}
+        <RegisterSW />
+      </body>
     </html>
   );
 }
