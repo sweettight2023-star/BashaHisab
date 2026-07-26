@@ -6,7 +6,6 @@ import {
   AlertCircle,
   CheckCircle2,
   KeyRound,
-  Landmark,
   Loader2,
   Phone,
   UserRound,
@@ -24,9 +23,7 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-paper paper-grain px-5 py-12">
       <div className="w-full max-w-md">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-leaf-800 text-cream shadow-card">
-            <Landmark className="h-5 w-5" />
-          </span>
+          <img src="/logo.png" alt="বাসা হিসাব" className="h-10 w-10 rounded-xl object-cover shadow-card" />
           <span className="font-serif text-2xl font-bold">
             বাসা<span className="text-leaf-700">হিসাব</span>
           </span>

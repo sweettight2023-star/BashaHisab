@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, desc, eq, isNull } from "drizzle-orm";
-import { ArrowLeft, Landmark, Lock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Lock, ShieldCheck } from "lucide-react";
 import { db } from "@/db";
 import { buildings, rentPayments, tenants, units, users } from "@/db/schema";
 import { getCurrentUser, isPremiumActive } from "@/lib/auth";
@@ -155,9 +155,7 @@ export default async function ReceiptPage({
         {/* হেডার */}
         <div className={`flex items-start justify-between gap-4 border-b-2 border-dashed border-line pb-6 ${locked ? "blur-md select-none" : ""}`}>
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-leaf-800 text-cream">
-              <Landmark className="h-5.5 w-5.5" />
-            </span>
+            <img src="/logo.png" alt="বাসা হিসাব" className="h-11 w-11 rounded-xl object-cover" />
             <div>
               <p className="font-serif text-xl font-black leading-tight">বাসা হিসাব</p>
               <p className="text-xs text-ink-soft">ডিজিটাল হিসাব খাতা</p>

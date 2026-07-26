@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { Crown, Landmark, LogOut } from "lucide-react";
+import { Crown, LogOut } from "lucide-react";
 import { getCurrentUser, isAdmin, isPremiumActive } from "@/lib/auth";
 import { logout } from "@/lib/actions";
 import { bn } from "@/lib/format";
@@ -19,9 +19,7 @@ export default async function DashboardLayout({
 
   const logo = (
     <Link href="/dashboard" className="flex items-center gap-2.5">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-leaf-800 text-cream shadow-card">
-        <Landmark className="h-4.5 w-4.5" />
-      </span>
+      <img src="/logo.png" alt="বাসা হিসাব" className="h-9 w-9 rounded-xl object-cover shadow-card" />
       <span className="font-serif text-xl font-bold">
         বাসা<span className="text-leaf-700">হিসাব</span>
       </span>
