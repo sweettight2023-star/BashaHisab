@@ -84,10 +84,16 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-clip bg-paper text-ink">
       {/* ================= নেভবার ================= */}
-      <header className="sticky top-0 z-50 border-b border-line/70 bg-paper/85 backdrop-blur-md">
+      <header
+        className="sticky top-0 z-50 border-b border-line/70 bg-paper/85 backdrop-blur-md"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="বাসা হিসাব" className="h-9 w-9 rounded-xl object-cover shadow-card" />
+            <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-leaf-800 shadow-card">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/icon-192.png" alt="বাসা হিসাব" className="h-full w-full object-cover" />
+            </span>
             <span className="font-serif text-xl font-bold tracking-tight">
               বাসা<span className="text-leaf-700">হিসাব</span>
             </span>
@@ -409,7 +415,10 @@ export default function LandingPage() {
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-3 lg:px-8">
           <div>
             <div className="flex items-center gap-2.5">
-              <img src="/logo.png" alt="বাসা হিসাব" className="h-9 w-9 rounded-xl object-cover" />
+              <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-leaf-800">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/icon-192.png" alt="বাসা হিসাব" className="h-full w-full object-cover" />
+              </span>
               <span className="font-serif text-xl font-bold">বাসা<span className="text-leaf-700">হিসাব</span></span>
             </div>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-soft">

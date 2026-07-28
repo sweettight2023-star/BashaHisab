@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { Loader2, LogIn, Phone, KeyRound, AlertCircle } from "lucide-react";
+import { Landmark, Loader2, LogIn, Phone, KeyRound, AlertCircle } from "lucide-react";
 import { login, type ActionState } from "@/lib/actions";
 
 export default function LoginPage() {
@@ -15,7 +15,10 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-paper paper-grain px-5 py-12">
       <div className="w-full max-w-md">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5">
-          <img src="/logo.png" alt="বাসা হিসাব" className="h-10 w-10 rounded-xl object-cover shadow-card" />
+          <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-leaf-800 shadow-card">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon-192.png" alt="বাসা হিসাব" className="h-full w-full object-cover" />
+          </span>
           <span className="font-serif text-2xl font-bold">
             বাসা<span className="text-leaf-700">হিসাব</span>
           </span>

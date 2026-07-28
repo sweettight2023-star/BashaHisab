@@ -7,6 +7,7 @@ import { db } from "@/db";
 import {
   buildings,
   expenses,
+  feedback,
   memberships,
   paymentRequests,
   rentPayments,
@@ -795,4 +796,20 @@ export async function rejectPayment(fd: FormData) {
     .set({ status: "rejected", resolvedAt: new Date() })
     .where(and(eq(paymentRequests.id, id), eq(paymentRequests.status, "pending")));
   revalidatePath("/admin");
+}
+
+/* ------------------------- ফিডব্যাক/মতামত ------------------------- */
+
+export async function submitFeedback(
+  _prev: ActionState,
+  fd: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  const message = str(fd, "message").trim();
+  if (message.length < 3) return { error: "মতামতটি লিখুন" };
+  if (message.length > 2000) return { error: "মতামতটি একটু ছোট করে লিখুন" };
+
+  await db.insert(feedback).values({ userId: user.id, message });
+  revalidatePath("/admin");
+  return { success: "ধন্যবাদ! আপনার মতামত পৌঁছে গেছে।" };
 }

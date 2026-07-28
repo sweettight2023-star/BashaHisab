@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { createContext, useActionState, useContext, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -13,6 +14,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  Search,
   Trash2,
   UserMinus,
   UserPlus,
@@ -786,4 +788,32 @@ export function ArchivedExpenses({
       )}
     </div>
   );
+}
+
+/* ------------------------- ইউনিট/ভাড়াটিয়া সার্চ ------------------------- */
+
+const SearchCtx = createContext("");
+
+export function UnitSearchBox({ children }: { children: ReactNode }) {
+  const [q, setQ] = useState("");
+  return (
+    <SearchCtx.Provider value={q}>
+      <div className="relative mt-4 max-w-sm">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="ইউনিট বা ভাড়াটিয়ার নাম দিয়ে খুঁজুন..."
+          className="w-full rounded-xl border border-line bg-paper py-2.5 pl-10 pr-4 text-sm font-medium transition focus:border-leaf-600 focus:ring-4 focus:ring-leaf-600/10"
+        />
+      </div>
+      {children}
+    </SearchCtx.Provider>
+  );
+}
+
+export function SearchItem({ searchKey, children }: { searchKey: string; children: ReactNode }) {
+  const q = useContext(SearchCtx);
+  const match = !q.trim() || searchKey.toLowerCase().includes(q.trim().toLowerCase());
+  return <div className={match ? "" : "hidden"}>{children}</div>;
 }

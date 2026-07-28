@@ -67,7 +67,14 @@ export async function getCurrentUser(): Promise<User | null> {
   return rows[0]?.user ?? null;
 }
 
+/**
+ * সাময়িকভাবে সবকিছু ফ্রি রাখার সুইচ — আবার প্রিমিয়াম চালু করতে চাইলে
+ * এই একটা লাইন `false` করে দিলেই সব আগের নিয়মে ফিরে যাবে।
+ */
+export const LAUNCH_FREE_FOR_ALL = true;
+
 export function isPremiumActive(user: User | null): boolean {
+  if (LAUNCH_FREE_FOR_ALL) return !!user;
   if (!user) return false;
   if (user.role === "admin") return true;
   if (user.plan !== "premium" || !user.premiumUntil) return false;
@@ -80,10 +87,9 @@ export function isAdmin(user: User | null): boolean {
 
 /* ---------------- ফ্রি টিয়ার লিমিট ---------------- */
 
-export const FREE_LIMITS = {
-  buildings: 1,
-  unitsPerBuilding: 5,
-};
+export const FREE_LIMITS = LAUNCH_FREE_FOR_ALL
+  ? { buildings: Infinity, unitsPerBuilding: Infinity }
+  : { buildings: 1, unitsPerBuilding: 5 };
 
 export const PREMIUM_PRICING: Record<number, number> = {
   1: 299,

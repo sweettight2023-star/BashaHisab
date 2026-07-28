@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Clock3,
   Crown,
+  MessageSquareHeart,
   ShieldCheck,
   TrendingUp,
   Users2,
@@ -12,10 +13,11 @@ import {
   XCircle,
 } from "lucide-react";
 import { db } from "@/db";
-import { buildings, paymentRequests, users } from "@/db/schema";
+import { buildings, feedback, paymentRequests, users } from "@/db/schema";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { approvePayment, rejectPayment } from "@/lib/actions";
 import { bn, bnNum, dateLabel } from "@/lib/format";
+import { UserSearchTable } from "./client";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +35,12 @@ export default async function AdminPage() {
     .select()
     .from(users)
     .orderBy(desc(users.createdAt));
+
+  const feedbackRows = await db
+    .select({ fb: feedback, userName: users.name, userPhone: users.phone })
+    .from(feedback)
+    .innerJoin(users, eq(feedback.userId, users.id))
+    .orderBy(desc(feedback.createdAt));
 
   const activeBuildings = await db
     .select({ id: buildings.id, userId: buildings.userId })
@@ -67,7 +75,10 @@ export default async function AdminPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl animate-rise">
+    <div
+      className="mx-auto max-w-6xl animate-rise px-4 py-6 sm:px-8 sm:py-10"
+      style={{ paddingTop: "max(1.5rem, env(safe-area-inset-top))" }}
+    >
       <h1 className="flex items-center gap-3 font-serif text-4xl font-bold">
         <ShieldCheck className="h-8 w-8 text-leaf-700" /> পেমেন্ট অনুমোদন
       </h1>
@@ -90,58 +101,50 @@ export default async function AdminPage() {
         <h2 className="font-serif text-2xl font-bold">
           সকল ব্যবহারকারী ({bn(allUsers.length)})
         </h2>
-        <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-cream shadow-card">
-          <table className="w-full min-w-[760px] text-left">
-            <thead>
-              <tr className="border-b border-line text-sm text-ink-soft">
-                <th className="px-5 py-3.5 font-semibold">নাম</th>
-                <th className="px-5 py-3.5 font-semibold">ফোন</th>
-                <th className="px-5 py-3.5 font-semibold">প্ল্যান</th>
-                <th className="px-5 py-3.5 font-semibold">মেয়াদ শেষ</th>
-                <th className="px-5 py-3.5 font-semibold">বিল্ডিং</th>
-                <th className="px-5 py-3.5 font-semibold">যোগ দিয়েছেন</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line/70">
-              {allUsers.map((u) => {
-                const activeNow =
-                  u.plan === "premium" &&
-                  u.premiumUntil &&
-                  new Date(u.premiumUntil) > new Date();
-                return (
-                  <tr key={u.id}>
-                    <td className="px-5 py-3.5 font-semibold">
-                      {u.name}
-                      {u.role === "admin" && (
-                        <span className="ml-2 rounded-full bg-leaf-100 px-2 py-0.5 text-[10px] font-black text-leaf-800">
-                          অ্যাডমিন
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5">{bn(u.phone)}</td>
-                    <td className="px-5 py-3.5">
-                      {activeNow ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-haldi-300/25 px-2.5 py-0.5 text-xs font-black text-haldi-700">
-                          <Crown className="h-3 w-3" /> প্রিমিয়াম
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-line/50 px-2.5 py-0.5 text-xs font-bold text-ink-soft">
-                          ফ্রি
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5 text-sm">
-                      {u.premiumUntil ? dateLabel(u.premiumUntil.toISOString().slice(0, 10)) : "—"}
-                    </td>
-                    <td className="px-5 py-3.5 font-bold">{bn(buildingCountByUser.get(u.id) ?? 0)}</td>
-                    <td className="px-5 py-3.5 text-sm">
-                      {dateLabel(u.createdAt.toISOString().slice(0, 10))}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <UserSearchTable
+          bn={bn}
+          rows={allUsers.map((u) => {
+            const activeNow =
+              u.plan === "premium" && u.premiumUntil && new Date(u.premiumUntil) > new Date();
+            return {
+              id: u.id,
+              name: u.name,
+              phone: u.phone,
+              role: u.role,
+              isPremiumNow: !!activeNow,
+              premiumUntilLabel: u.premiumUntil
+                ? dateLabel(u.premiumUntil.toISOString().slice(0, 10))
+                : "—",
+              buildingCount: buildingCountByUser.get(u.id) ?? 0,
+              createdAtLabel: dateLabel(u.createdAt.toISOString().slice(0, 10)),
+            };
+          })}
+        />
+      </div>
+
+      {/* ফিডব্যাক */}
+      <div className="mt-10">
+        <h2 className="flex items-center gap-2 font-serif text-2xl font-bold">
+          <MessageSquareHeart className="h-6 w-6 text-leaf-700" /> ব্যবহারকারীদের মতামত ({bn(feedbackRows.length)})
+        </h2>
+        <div className="mt-4 space-y-3">
+          {feedbackRows.length === 0 ? (
+            <p className="rounded-2xl border border-line bg-cream p-8 text-center text-ink-soft">
+              এখনো কোনো মতামত আসেনি।
+            </p>
+          ) : (
+            feedbackRows.map((r) => (
+              <div key={r.fb.id} className="rounded-2xl border border-line bg-cream p-5 shadow-card">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-bold">
+                    {r.userName} <span className="font-normal text-ink-soft">({bn(r.userPhone)})</span>
+                  </p>
+                  <p className="text-xs text-ink-soft">{dateLabel(r.fb.createdAt.toISOString().slice(0, 10))}</p>
+                </div>
+                <p className="mt-2 leading-relaxed text-ink">{r.fb.message}</p>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

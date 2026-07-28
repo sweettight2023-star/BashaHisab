@@ -224,6 +224,25 @@ export const paymentRequests = pgTable(
 );
 
 /* ------------------------------------------------------------------ */
+/*  ইউজারদের ফিডব্যাক/মতামত                                            */
+/* ------------------------------------------------------------------ */
+
+export const feedback = pgTable(
+  "feedback",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    message: text("message").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("feedback_user_idx").on(t.userId)],
+);
+
+/* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 

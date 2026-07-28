@@ -57,11 +57,13 @@
 
 html {
   scroll-behavior: smooth;
+  touch-action: manipulation;
 }
 
 body {
   font-feature-settings: "liga" 1;
   text-rendering: optimizeLegibility;
+  overscroll-behavior-y: contain;
 }
 
 ::selection {

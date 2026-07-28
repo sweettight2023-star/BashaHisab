@@ -19,6 +19,7 @@ import {
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { bn } from "@/lib/format";
 import { ADMIN_PHONE } from "@/lib/auth";
+import { FeedbackForm } from "./client";
 
 export const dynamic = "force-dynamic";
 
@@ -151,6 +152,8 @@ export default async function HelpPage() {
           bashahisab@gmail.com
         </a>
       </div>
+
+      <FeedbackForm />
 
       <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-leaf-900 p-7 text-cream shadow-lift grain-dark">
         <div>

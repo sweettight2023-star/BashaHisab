@@ -47,9 +47,11 @@ import {
   ExpenseForm,
   MonthPicker,
   PaymentButton,
+  SearchItem,
   TenantDialog,
   TenantEditDialog,
   UnitEditDialog,
+  UnitSearchBox,
 } from "./client";
 
 export const dynamic = "force-dynamic";
@@ -449,12 +451,15 @@ export default async function BuildingDetailPage({
           <AddUnitForm buildingId={building.id} />
         </div>
         {unitRows.length > 0 && (
+          <UnitSearchBox>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {unitRows.map((u) => {
               const t = activeTenant.get(u.id);
               const past = pastTenantCount(u.id);
+              const searchKey = `${u.name} ${t?.name ?? ""}`;
               return (
-                <div key={u.id} className="rounded-2xl border border-line bg-cream p-5 shadow-card">
+                <SearchItem key={u.id} searchKey={searchKey}>
+                <div className="rounded-2xl border border-line bg-cream p-5 shadow-card">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="font-serif text-lg font-bold">{u.name}</p>
@@ -501,9 +506,11 @@ export default async function BuildingDetailPage({
                     </p>
                   )}
                 </div>
+                </SearchItem>
               );
             })}
           </div>
+          </UnitSearchBox>
         )}
       </section>
 

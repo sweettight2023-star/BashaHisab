@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { Crown, LogOut } from "lucide-react";
+import { Crown, Landmark, LogOut } from "lucide-react";
 import { getCurrentUser, isAdmin, isPremiumActive } from "@/lib/auth";
 import { logout } from "@/lib/actions";
 import { bn } from "@/lib/format";
@@ -19,7 +19,10 @@ export default async function DashboardLayout({
 
   const logo = (
     <Link href="/dashboard" className="flex items-center gap-2.5">
-      <img src="/logo.png" alt="বাসা হিসাব" className="h-9 w-9 rounded-xl object-cover shadow-card" />
+      <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-leaf-800 shadow-card">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/icon-192.png" alt="বাসা হিসাব" className="h-full w-full object-cover" />
+      </span>
       <span className="font-serif text-xl font-bold">
         বাসা<span className="text-leaf-700">হিসাব</span>
       </span>
@@ -29,7 +32,10 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-paper">
       {/* মোবাইল হেডার */}
-      <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md lg:hidden">
+      <header
+        className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md lg:hidden"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
         <div className="flex h-16 items-center justify-between px-4">
           {logo}
           <form action={logout}>
@@ -45,7 +51,10 @@ export default async function DashboardLayout({
 
       <div className="mx-auto flex max-w-[1500px]">
         {/* ডেস্কটপ সাইডবার */}
-        <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-line bg-cream/60 px-5 py-7 lg:flex">
+        <aside
+          className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-line bg-cream/60 px-5 py-7 lg:flex"
+          style={{ paddingTop: "max(1.75rem, env(safe-area-inset-top))" }}
+        >
           {logo}
           <nav className="mt-10 flex flex-col gap-1.5">
             <DashboardNav isAdmin={admin} />
