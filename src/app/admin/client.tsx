@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Search, Crown } from "lucide-react";
+import { bn } from "@/lib/format";
 
 type UserRow = {
   id: string;
@@ -14,7 +15,7 @@ type UserRow = {
   createdAtLabel: string;
 };
 
-export function UserSearchTable({ rows, bn }: { rows: UserRow[]; bn: (n: number | string) => string }) {
+export function UserSearchTable({ rows }: { rows: UserRow[] }) {
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {

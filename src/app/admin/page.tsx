@@ -107,7 +107,6 @@ export default async function AdminPage() {
           সকল ব্যবহারকারী ({bn(allUsers.length)})
         </h2>
         <UserSearchTable
-          bn={bn}
           rows={allUsers.map((u) => {
             const activeNow =
               u.plan === "premium" && u.premiumUntil && new Date(u.premiumUntil) > new Date();
