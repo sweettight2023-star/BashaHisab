@@ -36,11 +36,16 @@ export default async function AdminPage() {
     .from(users)
     .orderBy(desc(users.createdAt));
 
-  const feedbackRows = await db
-    .select({ fb: feedback, userName: users.name, userPhone: users.phone })
-    .from(feedback)
-    .innerJoin(users, eq(feedback.userId, users.id))
-    .orderBy(desc(feedback.createdAt));
+  let feedbackRows: { fb: typeof feedback.$inferSelect; userName: string; userPhone: string }[] = [];
+  try {
+    feedbackRows = await db
+      .select({ fb: feedback, userName: users.name, userPhone: users.phone })
+      .from(feedback)
+      .innerJoin(users, eq(feedback.userId, users.id))
+      .orderBy(desc(feedback.createdAt));
+  } catch {
+    feedbackRows = [];
+  }
 
   const activeBuildings = await db
     .select({ id: buildings.id, userId: buildings.userId })
