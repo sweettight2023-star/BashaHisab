@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Hind Siliguri", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Noto Serif Bengali", Georgia, serif;
+  --font-sans: var(--font-hind), "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif-bn), "Noto Serif Bengali", Georgia, serif;
 
   --color-paper: #f7f3ea;
   --color-paper-deep: #efe8d9;

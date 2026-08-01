@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Hind_Siliguri, Noto_Serif_Bengali } from "next/font/google";
+import { Noto_Sans_Bengali, Noto_Serif_Bengali } from "next/font/google";
 import "./globals.css";
 import { RegisterSW } from "./register-sw";
 
-const hindSiliguri = Hind_Siliguri({
+const notoSansBengali = Noto_Sans_Bengali({
   subsets: ["bengali", "latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-hind",
@@ -48,7 +48,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="bn" className={`${hindSiliguri.variable} ${notoSerifBengali.variable}`}>
+    <html lang="bn" className={`${notoSansBengali.variable} ${notoSerifBengali.variable}`}>
       <body className="bg-paper text-ink font-sans antialiased">
         {children}
         <RegisterSW />
